@@ -234,6 +234,11 @@ config TARGET_HAILO15_SBC
 	bool "Hailo15 SBC"
 	select MACH_HAILO15
 
+config TARGET_CUSBOARD
+	bool "Hailo15 Customized Board"
+	select MACH_HAILO15
+
+
 
 source "board/hailo/hailo15-vp/Kconfig"
 source "board/hailo/hailo15-ginger-soc/Kconfig"
@@ -243,5 +248,6 @@ source "board/hailo/hailo15-veloce/Kconfig"
 source "board/hailo/hailo15-evb-2-camera-vpu/Kconfig"
 source "board/hailo/hailo15-evb-security-camera/Kconfig"
 source "board/hailo/hailo15-sbc/Kconfig"
+source "board/customized/cusboard/Kconfig"
 
 endif
