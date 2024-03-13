@@ -1172,6 +1172,7 @@ dtb-$(CONFIG_TARGET_HAILO15_EVB_2_CAMERA_VPU) += hailo15-evb-2-camera-vpu.dtb
 dtb-$(CONFIG_TARGET_HAILO15_EVB_SECURITY_CAMERA) += hailo15-evb-security-camera.dtb
 dtb-$(CONFIG_TARGET_HAILO15_EVB_SECURITY_CAMERA) += hailo15-evb-security-camera-sdio1-8bit.dtb
 dtb-$(CONFIG_TARGET_HAILO15_SBC) += hailo15-sbc.dtb
+dtb-$(CONFIG_TARGET_CUSBOARD) += cusboard.dtb
 
 targets += $(dtb-y)
 
