@@ -295,6 +295,7 @@ config TARGET_HAILO15_SBC
 	bool "Hailo15 SBC"
 	select MACH_HAILO15
 
+<<<<<<< HEAD
 config TARGET_HAILO15L_OREGANO
 	bool "Hailo15L Oregano"
 	select MACH_HAILO15L
@@ -302,6 +303,13 @@ config TARGET_HAILO15L_OREGANO
 config TARGET_HAILO10_M2
 	bool "Hailo10 M.2"
 	select MACH_HAILO10
+=======
+config TARGET_CUSBOARD
+	bool "Hailo15 Customized Board"
+	select MACH_HAILO15
+
+
+>>>>>>> 901e8688f3... Update Kconfig
 
 source "board/hailo/hailo15-vp/Kconfig"
 source "board/hailo/hailo15-ginger-soc/Kconfig"
@@ -312,7 +320,11 @@ source "board/hailo/hailo15l-veloce/Kconfig"
 source "board/hailo/hailo15-evb-2-camera-vpu/Kconfig"
 source "board/hailo/hailo15-evb-security-camera/Kconfig"
 source "board/hailo/hailo15-sbc/Kconfig"
+<<<<<<< HEAD
 source "board/hailo/hailo15l-oregano/Kconfig"
 source "board/hailo/hailo10-m2/Kconfig"
+=======
+source "board/customized/cusboard/Kconfig"
+>>>>>>> 901e8688f3... Update Kconfig
 
 endif
