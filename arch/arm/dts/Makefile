@@ -1167,11 +1167,14 @@ dtb-$(CONFIG_TARGET_HAILO15_GINGER_SOC) += hailo15-ginger-soc.dtb
 dtb-$(CONFIG_TARGET_HAILO15_GINGER_SOC_SDIO0) += hailo15-ginger-soc-sdio0.dtb
 dtb-$(CONFIG_TARGET_HAILO15_LAVENDER) += hailo15-lavender.dtb
 dtb-$(CONFIG_TARGET_HAILO15_VELOCE) += hailo15-veloce.dtb
+dtb-$(CONFIG_TARGET_HAILO15L_VELOCE) += hailo15l-veloce.dtb
 dtb-$(CONFIG_TARGET_HAILO15_VP) += hailo15-vp.dtb
 dtb-$(CONFIG_TARGET_HAILO15_EVB_2_CAMERA_VPU) += hailo15-evb-2-camera-vpu.dtb
 dtb-$(CONFIG_TARGET_HAILO15_EVB_SECURITY_CAMERA) += hailo15-evb-security-camera.dtb
 dtb-$(CONFIG_TARGET_HAILO15_EVB_SECURITY_CAMERA) += hailo15-evb-security-camera-sdio1-8bit.dtb
 dtb-$(CONFIG_TARGET_HAILO15_SBC) += hailo15-sbc.dtb
+dtb-$(CONFIG_TARGET_HAILO15L_OREGANO) += hailo15l-oregano.dtb
+dtb-$(CONFIG_TARGET_HAILO10_M2) += hailo10-m2.dtb
 
 targets += $(dtb-y)
 

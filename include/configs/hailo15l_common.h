@@ -5,10 +5,10 @@
  * Configuration for Hailo15.
  */
 
-#ifndef __HAILO15_COMMON_H
-#define __HAILO15_COMMON_H
+#ifndef __HAILO15L_COMMON_H
+#define __HAILO15L_COMMON_H
 
 #include "hailo15_family_common.h"
 
-#endif /* __HAILO15_COMMON_H */
+#endif /* __HAILO15L_COMMON_H */
 

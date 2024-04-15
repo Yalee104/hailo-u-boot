@@ -2,11 +2,11 @@
 /*
  * Copyright (c) 2019-2024 Hailo Technologies Ltd. All rights reserved.  
  *
- * Configuration for veloce Hailo15.
+ * Configuration for veloce Hailo15L.
  */
 
-#ifndef __HAILO15_VELOCE_H
-#define __HAILO15_VELOCE_H
+#ifndef __HAILO15L_VELOCE_H
+#define __HAILO15L_VELOCE_H
 
 #define SPL_BOOT_SOURCE "ram"
 
@@ -22,6 +22,6 @@
 
 #endif /* CONFIG_SPL_BUILD */
 
-#include "hailo15_common.h"
+#include "hailo15l_common.h"
 
-#endif /* __HAILO15_VELOCE_H */
+#endif /* __HAILO15L_VELOCE_H */

@@ -1,6 +1,5 @@
 #include <common.h>
 #include <dm/device.h>
-#include <dt-bindings/soc/hailo15_scmi_api.h>
 #include <scmi_agent.h>
 #include <scmi_protocols.h>
 

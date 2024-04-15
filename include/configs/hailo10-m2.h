@@ -1,12 +1,12 @@
 /* SPDX-License-Identifier: GPL-2.0 */
 /*
- * Copyright (c) 2019-2023 Hailo Technologies Ltd. All rights reserved.  
+ * Copyright (c) 2019-2024 Hailo Technologies Ltd. All rights reserved.
  *
- * Configuration for Hailo15.
+ * Configuration for Hailo10.
  */
 
-#ifndef __HAILO15_SBC_H
-#define __HAILO15_SBC_H
+#ifndef __HAILO10_M2_H
+#define __HAILO10_M2_H
 
 #define SWUPDATE_MMC_INDEX "1"
 
@@ -34,14 +34,14 @@
  *           - 2 ranks (Also refered as CS)
  *           - 2 channels per rank
  *           - Each channel is 16 bits wide => each rank is 32 bits bide
- *           - Rank size: 2G bytes
+ *           - Rank size: 4G bytes
  *         If __not__ using ECC, then memory access are located in a single region:
- *           - 0x80000000 -  0x17fffffff: Bank #0 (4G = 0x100000000)
+ *           - 0x80000000 -  0x27fffffff: Bank #0 (8G = 0x200000000)
  *         If using ECC, then memory region is spilted to 2 ranges:
- *           - 0x080000000 - 0x0efffffff: Bank #0     (1.75G = 0x70000000)
- *           - 0x0f0000000 - 0x0ffffffff: Bank #0 ECC (0.25G = 0x10000000)
- *           - 0x100000000 - 0x16fffffff: Bank #1     (1.75G = 0x70000000)
- *           - 0x170000000 - 0x17fffffff: Bank #1 ECC (0.25G = 0x10000000)
+ *           - 0x080000000 - 0x15FFFFFFF: Bank #0     (3.5G = 0xE0000000)
+ *           - 0x160000000 - 0x17fffffff: Bank #0 ECC (0.5G = 0x20000000)
+ *           - 0x180000000 - 0x25fffffff: Bank #1     (3.5G = 0x70000000)
+ *           - 0x260000000 - 0x27fffffff: Bank #1 ECC (0.5G = 0xE0000000)
  */
 
-#endif /* __HAILO15_SBC_H */
+#endif /* __HAILO10_M2_H */

@@ -2,10 +2,10 @@
 /*
  * dts file for Hailo15 SoC
  *
- * Copyright (c) 2019-2023 Hailo Technologies Ltd. All rights reserved.
+ * Copyright (c) 2019-2024 Hailo Technologies Ltd. All rights reserved.
  */
 
-#include "hailo15-base.dtsi"
+#include "hailo15l-base.dtsi"
 #include "hailo15_ddr_configuration.dtsi"
 #include "hailo15_ddr_veloce_regconfig.dtsi"
 

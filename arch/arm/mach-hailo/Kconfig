@@ -6,8 +6,8 @@ config SYS_ARCH
 config SYS_SOC
 	default "hailo"
 
-config MACH_HAILO15
-	bool "Hailo15 SoC"
+config MACH_HAILO15_FAMILY
+	bool
 	select ARCH_SUPPORT_TFABOOT
 	select MISC_INIT_R
 	select BOARD_EARLY_INIT_R
@@ -28,7 +28,6 @@ config MACH_HAILO15
 	select OF_BOARD
 	select SPI
 	select SPI_FLASH
-	select CADENCE_QSPI
 	select DM_ETH
 	select MACB
 	select DM_MMC
@@ -44,7 +43,6 @@ config MACH_HAILO15
 	select RESET_SCMI
 	select DM_MAILBOX
 	select ARM_PL320_MAILBOX
-	select ENV_IS_IN_SPI_FLASH
 	select PRINTF
 	select PANIC_HANG
 	select OF_LIBFDT
@@ -52,6 +50,8 @@ config MACH_HAILO15
 	select PINCONF
 	select PINCTRL
 	select PINCTRL_HAILO15
+	select DM_I2C
+	select SYS_I2C_DW
 	select SPL
 	select SPL_DM
 	select SPL_MMC_WRITE
@@ -67,11 +67,11 @@ config MACH_HAILO15
 	select SPL_OF_TRANSLATE
 	select SPL_SEPARATE_BSS
 	select SPL_ENV_SUPPORT
-	select SPL_ENV_IS_IN_SPI_FLASH
 	select SPL_DM_SPI
 	select SPL_DM_SPI_FLASH
 	select SPL_SPI
 	select SPL_SPI_FLASH_SUPPORT
+	select SPL_NOR_SUPPORT
 	select SPL_DM_SEQ_ALIAS
 	select SPL_EFI_PARTITION
 	select SPL_ATF
@@ -105,6 +105,7 @@ config MACH_HAILO15
 	imply CMD_MEMTEST
 	imply CMD_MII
 	imply CMD_PART
+	imply CMD_I2C
 	imply HUSH_PARSER
 	imply AUTOBOOT
 	imply SPL_DM_MMC
@@ -112,7 +113,33 @@ config MACH_HAILO15
 	imply SPL_FS_FAT
 	imply SPL_YMODEM_SUPPORT
 
-if MACH_HAILO15
+config MACH_HAILO15
+	bool
+	select MACH_HAILO15_FAMILY
+	select ENV_IS_IN_SPI_FLASH
+	select SPL_ENV_IS_IN_SPI_FLASH
+	select CADENCE_QSPI
+
+config MACH_HAILO15L
+	bool
+	select MACH_HAILO15_FAMILY
+	select SPL_ENV_IS_NOWHERE
+	select ENV_IS_NOWHERE
+	select SPL_RAM_SUPPORT
+	select SPL_RAM_DEVICE
+	select SUPPORT_RAW_INITRD
+
+config MACH_HAILO10
+	bool
+	select MACH_HAILO15_FAMILY
+	select ENV_IS_IN_SPI_FLASH
+	select SPL_ENV_IS_IN_SPI_FLASH
+	select CADENCE_QSPI
+	# The above selection for ENV and SPL_ENV in flash and CADENCE_QSPI are temporary.
+	# TODO: need to be changed similar to HAILO15L.
+
+if MACH_HAILO15_FAMILY
+
 config PRE_CON_BUF_ADDR
 	default 0x84000000
 
@@ -128,11 +155,19 @@ config SYS_MALLOC_LEN
 config SYS_MALLOC_F_LEN
 	default 0x10000
 
+config SYS_UBOOT_OFFSET
+	hex "U-BOOT offset in relevant storage"
+	default 0x80000
+
 config ENV_OFFSET
 	default 0x50000
 
 config ENV_SECT_SIZE
 	default 0x4000
+
+config MAC_ADDR_OFFSET
+	hex "Stored MAC address offset in the relevant storage"
+	default 0x7000
 
 config ENV_SIZE
 	default 0x4000
@@ -158,7 +193,9 @@ config SPL_SIZE_LIMIT_PROVIDE_STACK
 	default 0
 
 config SYS_PROMPT
-	default "hailo15# "
+	default "hailo15# " if MACH_HAILO15
+	default "hailo15l# " if MACH_HAILO15L
+	default "hailo10# " if MACH_HAILO10
 
 config HAILO15_DDR_ENABLE_ECC
 	bool "Hailo15 DDR enable ECC"
@@ -166,9 +203,14 @@ config HAILO15_DDR_ENABLE_ECC
 config HAILO15_EMMC_8BIT
 	bool "Hailo15 emmc 8bit"
 
+config MAC_ADDR_IN_SPIFLASH
+	bool "MAC address in SPI Flash"
+	help
+	  MAC address in SPI Flash
+	  Enable this option to read the MAC from SPI Flash
+
 config NR_DRAM_BANKS
-	default 2 if HAILO15_DDR_ENABLE_ECC
-	default 1 if !HAILO15_DDR_ENABLE_ECC
+	default 2
 
 config HAILO15_SWUPDATE
 	bool "Hailo15 SWUpdate support"
@@ -196,6 +238,19 @@ config HAILO15_MMC_ROOTFS_PARTITION_B
 	int
 	default 4
 
+config HAILO_VELOCE
+	bool
+
+config BAUDRATE
+	default 12500000 if HAILO_VELOCE
+
+endif
+
+if MACH_HAILO15L
+
+config SPL_LOAD_FIT_ADDRESS
+	default 0x86000000
+
 endif
 
 config TARGET_HAILO15_VP
@@ -221,6 +276,12 @@ config TARGET_HAILO15_LAVENDER
 config TARGET_HAILO15_VELOCE
 	bool "Hailo15 VELOCE"
 	select MACH_HAILO15
+	select HAILO_VELOCE
+
+config TARGET_HAILO15L_VELOCE
+	bool "Hailo15L VELOCE"
+	select MACH_HAILO15L
+	select HAILO_VELOCE
 
 config TARGET_HAILO15_EVB_2_CAMERA_VPU
 	bool "Hailo15 EVB 2 Camera VPU"
@@ -234,14 +295,24 @@ config TARGET_HAILO15_SBC
 	bool "Hailo15 SBC"
 	select MACH_HAILO15
 
+config TARGET_HAILO15L_OREGANO
+	bool "Hailo15L Oregano"
+	select MACH_HAILO15L
+
+config TARGET_HAILO10_M2
+	bool "Hailo10 M.2"
+	select MACH_HAILO10
 
 source "board/hailo/hailo15-vp/Kconfig"
 source "board/hailo/hailo15-ginger-soc/Kconfig"
 source "board/hailo/hailo15-ginger-soc-sdio0/Kconfig"
 source "board/hailo/hailo15-lavender/Kconfig"
 source "board/hailo/hailo15-veloce/Kconfig"
+source "board/hailo/hailo15l-veloce/Kconfig"
 source "board/hailo/hailo15-evb-2-camera-vpu/Kconfig"
 source "board/hailo/hailo15-evb-security-camera/Kconfig"
 source "board/hailo/hailo15-sbc/Kconfig"
+source "board/hailo/hailo15l-oregano/Kconfig"
+source "board/hailo/hailo10-m2/Kconfig"
 
 endif

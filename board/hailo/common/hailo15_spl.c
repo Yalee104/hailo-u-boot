@@ -9,6 +9,8 @@
 #include <hang.h>
 #include "hailo15_board.h"
 
+#define BASE_SPI_FLASH_ADDRESS 0x70000000
+
 void spl_board_init(void)
 {
 	if (hailo15_scmi_init()) {
@@ -34,6 +36,9 @@ void board_boot_order(u32 *spl_boot_list)
 
 	if (!strcmp(s, "mmc1")) {
 		spl_boot_list[0] = BOOT_DEVICE_MMC1;
+#ifdef CONFIG_TARGET_HAILO15L_OREGANO
+		spl_boot_list[1] = BOOT_DEVICE_MMC1;
+#endif /* CONFIG_TARGET_HAILO15L_OREGANO */
 	} else if (!strcmp(s, "mmc2")) {
 		spl_boot_list[0] = BOOT_DEVICE_MMC2;
 	} else if (!strcmp(s, "mmc12")) {
@@ -44,6 +49,10 @@ void board_boot_order(u32 *spl_boot_list)
 		spl_boot_list[1] = BOOT_DEVICE_MMC1;
 	} else if (!strcmp(s, "uart")) {
 		spl_boot_list[0] = BOOT_DEVICE_UART;
+	} else if (!strcmp(s, "ram")) {
+		spl_boot_list[0] = BOOT_DEVICE_RAM;
+	} else if (!strcmp(s, "nor")) {
+		spl_boot_list[0] = BOOT_DEVICE_NOR;
 	} else {
 		printf("spl_boot_source=%s unsupported, falling back to mmc12\n", s);
 		s = "mmc12";
@@ -57,4 +66,9 @@ void board_boot_order(u32 *spl_boot_list)
 int spl_mmc_fs_boot_partition(void)
 {
 	return hailo15_mmc_boot_partition();
+}
+
+unsigned long spl_nor_get_uboot_base(void)
+{
+	return BASE_SPI_FLASH_ADDRESS + CONFIG_SYS_UBOOT_OFFSET + hailo15_get_qspi_flash_ab_offset();
 }

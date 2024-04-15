@@ -24,19 +24,5 @@
  *           - 0x100000000 - 0x16fffffff: Bank #1     (1.75G = 0x70000000)
  *           - 0x170000000 - 0x17fffffff: Bank #1 ECC (0.25G = 0x10000000)
  */
-#ifdef CONFIG_HAILO15_DDR_ENABLE_ECC
-
-/* Bank 0 size using ECC */
-#define PHYS_SDRAM_1_SIZE (0x70000000)
-/* Bank 1 address/size using ECC */
-#define PHYS_SDRAM_2 (0x100000000)
-#define PHYS_SDRAM_2_SIZE (0x70000000)
-
-#else
-
-/* Bank 0 size not using ECC */
-#define PHYS_SDRAM_1_SIZE (0x100000000)
-
-#endif
 
 #endif /* __HAILO15_EVB_SECURITY_CAMERA_H */

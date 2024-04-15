@@ -1,20 +1,19 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
- * dts file for Hailo15 SoC
+ * dts file for Hailo15 oregano SoC
  *
- * Copyright (c) 2019-2023 Hailo Technologies Ltd. All rights reserved.
+ * Copyright (c) 2019-2024 Hailo Technologies Ltd. All rights reserved.
  */
 
-#include "hailo15-base.dtsi"
+#include "hailo15l-base.dtsi"
 #include "hailo15_ddr_configuration.dtsi"
-//#include "hailo15_ddr_MT53E512M32D1-046_regconfig_2GB.dtsi"
-//#include "hailo15_ddr_MT53E2G32D4DE-046_regconfig_8GB.dtsi"
-#include "hailo15_ddr_MT53E1G32D2FW-046_regconfig_ca_odtb_pu_4GB.dtsi"
+#include "hailo15_ddr_MT53E512M32D1-046_regconfig_2GB.dtsi" // 2GB ddr
 
-&sdio1 {
+&sdio0 {
     status = "okay";
     sdhci-caps = <0 0x01000000>; // Force VOLT33 capability
     bus-width = <4>;
+
     phy-config {
             card-is-emmc = <0x0>;
             cmd-pad-values = <0x1 0x3 0x1 0x1>; // txslew_ctrl_n, txslew_ctrl_p, weakpull_enable, rxsel
@@ -29,27 +28,11 @@
 
 &macb {
     status = "okay";
-    pinctrl-names = "default";
-    pinctrl-0 = <&pinctrl_eth>;
-    hailo,tx-clock-delay = <6>;
+    phy-mode = "gmii";
 };
 
-&pinctrl {
-    pinctrl_eth: eth {
-        pins = "eth_rgmii_tx_clk",
-               "eth_rgmii_tx_ctl",
-               "eth_rgmii_txd_0",
-               "eth_rgmii_txd_1",
-               "eth_rgmii_txd_2",
-               "eth_rgmii_txd_3";
-        drive-strength = <2>;
-    };
-};
-
-&i2c_0 {
-    status = "okay";
-};
-
-&i2c_1 {
-    status = "okay";
+&hailo_boot_info {
+	ddr_config {
+		bist_enable = <0>;
+	};
 };
