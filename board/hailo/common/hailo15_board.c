@@ -360,34 +360,6 @@ int dram_init_banksize(void)
 	return 0;
 }
 
-/*! @note This is a temporary implementation and should be removed once trusted-firmware will be used,
- *        and system-reset will be requested via PSCI request to the trusted-firmware.
- *		  Current implementation: system-reset request is done directly as OSPM agent via SCMI to SCU.
- */
-void reset_cpu(ulong addr)
-{
-	int ret;
-	struct reset_ctl reset;
-	struct udevice *root = dm_root();
-
-	ret = reset_get_by_name(root, "system-reset", &reset);
-	if (ret) {
-		printf("system-reset is not defined in DT root node, invoking hang() instead... ret[%d].\n", ret);
-		goto do_hang_fn;
-	}
-
-	ret = reset_assert(&reset);
-	if (ret) {
-		printf("system-reset failed, invoking hang() instead: ret[%d].\n", ret);
-	}
-
-do_hang_fn:
-	/*! @note if reset_assert succeed, then we will never reach to execute hang() function.
-	 *        It is written here, just to make sure we hang if above code failed.
-	 */
-	hang();
-}
-
 #if defined(CONFIG_SHOW_BOOT_PROGRESS)
 void show_boot_progress(int progress)
 {

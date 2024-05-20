@@ -17,10 +17,13 @@
 #include <log.h>
 #include <regmap.h>
 #include <syscon.h>
+#include <asm/gpio.h>
 
 struct hailo_priv {
     void __iomem *general_pads_config_base;
     void __iomem *gpio_pads_config_base;
+    struct h15_pin_set_runtime_data pin_set_runtime_data[H15_PIN_SET_VALUE__COUNT];
+    const struct h15_pin_function *current_functions[H15_PINMUX_PIN_COUNT]; 
 };
 
 static const unsigned char drive_strength_lookup[16] = {
@@ -35,6 +38,13 @@ static const struct pinconf_param hailo_conf_params[] = {
     { "bias-disable", PIN_CONFIG_BIAS_DISABLE, 0 },
 };
 
+static const struct h15_pin_function unknown_function = {
+    .name = "unknown",
+    .name_size = sizeof("unknown"),
+    .num_groups = 0,
+    .groups = NULL,
+};
+
 static int hailo15_get_pins_count(struct udevice *dev)
 {
     return ARRAY_SIZE(hailo15_pins);
@@ -45,6 +55,7 @@ static int hailo15_pinctrl_probe(struct udevice *dev)
     struct hailo_priv *priv = dev_get_priv(dev);
     int return_value;
     struct resource res_regs;
+    int i;
 
     return_value = dev_read_resource_byname(dev, "general_pads_config_base",
                         &res_regs);
@@ -66,6 +77,18 @@ static int hailo15_pinctrl_probe(struct udevice *dev)
     priv->gpio_pads_config_base =
         devm_ioremap(dev, res_regs.start, resource_size(&res_regs));
 
+    for (i = 0; i < H15_PIN_SET_VALUE__COUNT; i++) {
+        /*
+        * Create a contiguous bitmask starting at bit position h15_pin_sets[i].modes_count and ending at position 0.
+        */
+        priv->pin_set_runtime_data[i].possible_modes = GENMASK(h15_pin_sets[i].modes_count, 0);
+        priv->pin_set_runtime_data[i].current_mode = 0;
+    }
+
+    for (i = 0; i < H15_PINCTRL_PIN_COUNT; i++) {
+        priv->current_functions[i] = &unknown_function;
+    }
+
     log_info("hailo15 pinctrl registered\n");
     return 0;
 }
@@ -73,7 +96,38 @@ static int hailo15_pinctrl_probe(struct udevice *dev)
 static const char *hailo15_get_pin_name(struct udevice *dev,
                     unsigned int selector)
 {
+    if (selector >= ARRAY_SIZE(hailo15_pins)) {
+        return NULL;
+    }
     return hailo15_pins[selector].name;
+}
+
+static void hailo15_set_pads_pinmux_mode(struct hailo_priv *priv,
+                                        enum h15_pin_set_value set_number,
+                                        uint32_t pads_pinmux_value)
+{
+    uint32_t data_reg;
+    uint32_t data_reg_mask;
+
+    data_reg = readl(priv->general_pads_config_base +
+                     GENERAL_PADS_CONFIG__PADS_PINMUX);
+    /*
+    * Turn off the bits of the relevant pins set in data_reg.
+    */
+    data_reg_mask = pads_pinmux_mode_reg_mask_value[set_number];
+    data_reg_mask =
+        (~(data_reg_mask << pads_pinmux_mode_shift_value[set_number]));
+    data_reg = data_reg & data_reg_mask;
+
+    /*
+    * Set data_reg in the bits of the relevant pins set to the selected mode.
+    */
+    data_reg = data_reg | (pads_pinmux_value
+               << (pads_pinmux_mode_shift_value[set_number]));
+    writel(data_reg, (priv->general_pads_config_base +
+           GENERAL_PADS_CONFIG__PADS_PINMUX));
+
+    pr_debug("data_reg: %d\n", data_reg);
 }
 
 static int hailo15_general_pad_set_strength(struct udevice *dev,
@@ -225,6 +279,220 @@ static int hailo15_pin_config_set(struct udevice *dev, unsigned pin_selector,
     return 0;
 }
 
+static int hailo15_get_functions_count(struct udevice *dev)
+{
+    return ARRAY_SIZE(h15_pin_functions);
+}
+
+static const char *hailo15_get_function_name(struct udevice *dev,
+                                             unsigned int selector)
+{
+    if (selector >= ARRAY_SIZE(h15_pin_functions)) {
+        return NULL;
+    }
+    return h15_pin_functions[selector].name;
+}
+
+static void hailo15_enable_pin(struct hailo_priv *priv, unsigned int pin_number)
+{
+    uint32_t data_reg;
+
+    data_reg = readl(priv->gpio_pads_config_base +
+                     GPIO_PADS_CONFIG__GPIO_IO_OUTPUT_EN_N_CTRL_BYPASS_EN);
+    data_reg &= (~(1 << pin_number));
+    writel(data_reg,
+           priv->gpio_pads_config_base +
+           GPIO_PADS_CONFIG__GPIO_IO_OUTPUT_EN_N_CTRL_BYPASS_EN);
+    
+    data_reg = readl(priv->gpio_pads_config_base +
+                     GPIO_PADS_CONFIG__GPIO_IO_INPUT_EN_CTRL_BYPASS_EN);
+    data_reg &= (~(1 << pin_number));
+    writel(data_reg,
+           priv->gpio_pads_config_base +
+           GPIO_PADS_CONFIG__GPIO_IO_INPUT_EN_CTRL_BYPASS_EN);
+}
+
+static int hailo15_pinmux_group_set(struct udevice *dev,
+                                    unsigned group_selector,
+                                    unsigned function_selector)
+{
+    struct hailo_priv *priv = dev_get_priv(dev);
+
+    const struct h15_pin_function *func = &h15_pin_functions[function_selector];
+    const struct h15_pin_group *grp = &h15_pin_groups[group_selector];
+
+    uint32_t new_mode = 0;
+    bool is_function_supported = false;
+    int i;
+
+    /*
+     * Check if group supports the given function.
+     */
+    for (i = 0; i < func->num_groups; i++) {
+        is_function_supported |= strcmp(func->groups[i], grp->name) == 0;
+    }
+
+    if (!is_function_supported) {
+        pr_err("Error: function %s is not supported for group %s\n",
+               func->name, grp->name);
+        return -ENOSYS;
+    }
+
+    /*
+    * For every pin set in the pins group, find the permitted pinmux mode.
+    */
+    for (i = 0; i < grp->num_set_modes; i++) {
+        struct h15_pin_set_runtime_data *pin_set_runtime_data =
+            &priv->pin_set_runtime_data[grp->set_modes[i].set];
+
+        /*
+        * For every pin set, check if there is at least one mode that also exists in the possible_modes
+        * (that established so far) and in the permitted modes in the new group.
+        */
+        if ((pin_set_runtime_data->possible_modes &
+             grp->set_modes[i].modes) == 0) {
+            pr_err("Error for (function name: %s, group name: %s) there is no correct mode that settles with the others selected function so far\n",
+                   func->name, grp->name);
+            return -EIO;
+        }
+    }
+
+    /*
+     * Since the driver "decodes" what is the correct mode for each pin group
+     * by the functions requested so far, it can happen that it chooses a mode
+     * that is correct for the functions selected so far, but it is not the "correct" mode for this board.
+     * This temporary mode can set wrong functionality to some pins.
+     * The "correct" mode will be selected when all the functions defined in the device tree will be processed.
+     * So the driver start all 32 gpio pads in disable state to prevent set wrong functionality to some pins,
+     * and the driver enable only the pins that is requested by a specific driver in hailo15_set_mux function.
+    */
+    for (i = 0; i < grp->num_pins; i++) {
+        hailo15_enable_pin(priv, grp->pins[i]);
+        priv->current_functions[grp->pins[i]] = &h15_pin_functions[function_selector];
+    }
+
+    for (i = 0; i < grp->num_set_modes; i++) {
+        struct h15_pin_set_runtime_data *pin_set_runtime_data =
+            &priv->pin_set_runtime_data[grp->set_modes[i].set];
+
+        pin_set_runtime_data->possible_modes &= grp->set_modes[i].modes;
+
+        /*
+        * Find the first set bit in pin_set_runtime_data->possible_modes to determine the selected mode.
+        */
+        new_mode = __builtin_ctz(pin_set_runtime_data->possible_modes);
+
+        /*
+        * Check if the driver need to update the pinmux mode for that set.
+        */
+        if (new_mode != pin_set_runtime_data->current_mode) {
+            pin_set_runtime_data->current_mode = new_mode;
+            hailo15_set_pads_pinmux_mode(
+                priv, grp->set_modes[i].set,
+                pin_set_runtime_data->current_mode);
+        }
+    }
+
+    return 0;
+}
+
+enum h15_pin_set_value hailo15_get_pin_set(unsigned int pin_number)
+{
+	enum h15_pin_set_value set;
+	if (pin_number <= 1) {
+		set = H15_PIN_SET_VALUE__1_0;
+	} else if (pin_number <= 3) {
+		set = H15_PIN_SET_VALUE__3_2;
+	} else if (pin_number <= 5) {
+		set = H15_PIN_SET_VALUE__5_4;
+	} else if (pin_number <= 7) {
+		set = H15_PIN_SET_VALUE__7_6;
+	} else if (pin_number <= 15) {
+		set = H15_PIN_SET_VALUE__15_8;
+	} else if (pin_number <= 31) {
+		set = H15_PIN_SET_VALUE__31_16;
+	} else {
+		return -EIO;
+	}
+	return set;
+}
+
+static int hailo15_gpio_request_enable(struct udevice *dev, unsigned int selector)
+{
+    return hailo15_pinmux_group_set(dev, selector, H15_PINMUX_GPIO_FUNCTION_SELECTOR);
+}
+
+static int hailo15_get_pin_muxing(struct udevice *dev, unsigned int selector,
+                          char *buf, int size)
+{
+    struct hailo_priv *priv = dev_get_priv(dev);
+    const struct h15_pin_function *func;
+    enum h15_pin_set_value set;
+    struct h15_pin_set_runtime_data *pin_set_runtime_data;
+
+    if (selector >= H15_PINMUX_PIN_COUNT) {
+        snprintf(buf, size, "is non-muxable pin");
+        return 0;
+    }
+
+    /* Muxable pin (GPIO0-GPIO31) */
+    func = priv->current_functions[selector];
+    set = hailo15_get_pin_set(selector);
+    pin_set_runtime_data = &priv->pin_set_runtime_data[set];
+    
+    snprintf(
+        buf,
+        size,
+        "set: %d, modes mask: 0x%x, mode: %d, function: %s",
+        (int)set,
+        pin_set_runtime_data->possible_modes,
+        pin_set_runtime_data->current_mode,
+        func->name);
+
+    return 0;
+}
+
+static int hailo15_get_groups_count(struct udevice *dev)
+{
+    return ARRAY_SIZE(h15_pin_groups);
+}
+
+static const char *hailo15_get_group_name(struct udevice *dev,
+                                          unsigned int selector)
+{
+    if (selector >= ARRAY_SIZE(h15_pin_groups)) {
+        return NULL;
+    }
+    return h15_pin_groups[selector].name;
+}
+
+static int hailo15_get_gpio_mux(struct udevice *dev, int banknum, int index)
+{
+    struct hailo_priv *priv = dev_get_priv(dev);
+    const struct h15_pin_function *func;
+    enum h15_pin_set_value set;
+
+    int pin = banknum * H15_PINMUX_PIN_IN_BANK_COUNT + index;
+    if (pin >= H15_PINMUX_PIN_COUNT) {
+        return -EINVAL;
+    }
+
+    /* Muxable pin (GPIO0-GPIO31) */
+    set = hailo15_get_pin_set(pin);
+    func = priv->current_functions[pin];
+    if (func == &unknown_function) {
+        return GPIOF_UNKNOWN;
+    } else if (func != &h15_pin_functions[H15_PINMUX_GPIO_FUNCTION_SELECTOR]) {
+        return GPIOF_FUNC;
+    }
+
+    /* 
+     * We do not mind whether it's an input or an output,
+     * as long as it's a GPIO pin.
+     */
+    return GPIOF_INPUT;
+}
+
 static struct pinctrl_ops hailo_pinctrl_ops = {
     .get_pins_count = hailo15_get_pins_count,
     .get_pin_name = hailo15_get_pin_name,
@@ -232,6 +500,15 @@ static struct pinctrl_ops hailo_pinctrl_ops = {
     .pinconf_num_params = ARRAY_SIZE(hailo_conf_params),
     .pinconf_params = hailo_conf_params,
     .pinconf_set = hailo15_pin_config_set,
+    .get_functions_count = hailo15_get_functions_count,
+    .get_function_name = hailo15_get_function_name,
+    .pinmux_group_set = hailo15_pinmux_group_set,
+    .gpio_request_enable = hailo15_gpio_request_enable,
+    .get_pin_muxing = hailo15_get_pin_muxing,
+    .set_state = pinctrl_generic_set_state,
+    .get_groups_count = hailo15_get_groups_count,
+    .get_group_name = hailo15_get_group_name,
+    .get_gpio_mux = hailo15_get_gpio_mux
 };
 
 static const struct udevice_id hailo_pinctrl_ids[] = {
@@ -239,8 +516,8 @@ static const struct udevice_id hailo_pinctrl_ids[] = {
     {}
 };
 
-U_BOOT_DRIVER(pinctrl_snapdraon) = {
-    .name = "pinctrl_hailo",
+U_BOOT_DRIVER(pinctrl_hailo15) = {
+    .name = "pinctrl_hailo15",
     .id = UCLASS_PINCTRL,
     .of_match = hailo_pinctrl_ids,
     .priv_auto = sizeof(struct hailo_priv),

@@ -85,6 +85,9 @@ config MACH_HAILO15_FAMILY
 	select WDT
 	select WDT_SP805
 	select SPL_BOARD_INIT
+	select PSCI_RESET
+	select SYSRESET
+	select SYSRESET_PSCI
 	imply CMD_DM
 	imply CMD_SF
 	imply CMD_NET
@@ -106,12 +109,17 @@ config MACH_HAILO15_FAMILY
 	imply CMD_MII
 	imply CMD_PART
 	imply CMD_I2C
+	imply CMD_POWEROFF
 	imply HUSH_PARSER
 	imply AUTOBOOT
 	imply SPL_DM_MMC
 	imply SPL_MMC
 	imply SPL_FS_FAT
 	imply SPL_YMODEM_SUPPORT
+	imply CMSDK_GPIO
+	imply CMD_GPIO
+	imply DM_GPIO
+	imply GPIO_HOG
 
 config MACH_HAILO15
 	bool

@@ -203,6 +203,16 @@ static int gem_is_gigabit_capable(struct macb_device *macb)
 	return macb_is_gem(macb) && !cpu_is_sama5d2() && !cpu_is_sama5d4();
 }
 
+static int phy_is_gigabit_capable(struct macb_device *macb)
+{
+	return (macb->phy_interface == PHY_INTERFACE_MODE_GMII ||
+			macb->phy_interface == PHY_INTERFACE_MODE_SGMII ||
+			macb->phy_interface == PHY_INTERFACE_MODE_RGMII ||
+			macb->phy_interface == PHY_INTERFACE_MODE_RGMII_ID ||
+			macb->phy_interface == PHY_INTERFACE_MODE_RGMII_RXID ||
+			macb->phy_interface == PHY_INTERFACE_MODE_RGMII_TXID) ? 1 : 0;
+}
+
 static void macb_mdio_write(struct macb_device *macb, u8 phy_adr, u8 reg,
 			    u16 value)
 {
@@ -882,7 +892,7 @@ static int macb_phy_init(struct macb_device *macb, const char *name)
 	}
 
 	/* First check for GMAC and that it is GiB capable */
-	if (gem_is_gigabit_capable(macb)) {
+	if (gem_is_gigabit_capable(macb) && phy_is_gigabit_capable(macb)) {
 		lpa = macb_mdio_read(macb, macb->phy_addr, MII_STAT1000);
 
 		if (lpa & (LPA_1000FULL | LPA_1000HALF | LPA_1000XFULL |

@@ -91,6 +91,11 @@ config BCM6345_GPIO
 	help
 	  This driver supports the GPIO banks on BCM6345 SoCs.
 
+config CMSDK_GPIO
+	bool "ARM CoreLink CMSDK GPIO driver"
+	help
+	  This driver supports the ARM CoreLink CMSDK GPIO device.
+
 config CORTINA_GPIO
 	bool "Cortina-Access GPIO driver"
 	depends on DM_GPIO && CORTINA_PLATFORM

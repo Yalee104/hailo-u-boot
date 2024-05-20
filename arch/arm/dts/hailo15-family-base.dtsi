@@ -19,8 +19,10 @@
     #address-cells = <2>;
     #size-cells = <2>;
 
-    resets = <&scmi_reset HAILO15_SCMI_RESET_IDX_SYSTEM_RESET>;
-    reset-names = "system-reset";
+	psci {
+		compatible = "arm,psci-1.0";
+		method = "smc";
+	};
 
     reserved-memory {
         #address-cells = <2>;
@@ -190,10 +192,32 @@
     };
 
     pinctrl: pinctrl@7c291000 {
-            compatible = "hailo15,pinctrl";
-            reg = <0 0x7c291000 0 0x1000>,
-                  <0 0x7c292000 0 0x1000>;
-            reg-names = "general_pads_config_base", "gpio_pads_config_base";
+        compatible = "hailo15,pinctrl";
+        reg = <0 0x7c291000 0 0x1000>,
+              <0 0x7c292000 0 0x1000>;
+        reg-names = "general_pads_config_base", "gpio_pads_config_base";
+    };
+
+    gpio0: gpio@78200000 {
+        compatible = "arm,cmsdk-gpio";
+        reg = <0 0x78200000 0 0x1000>,
+              <0 0x7c292000 0 0x1000>;
+        gpio-controller;
+        gpio-ranges = <&pinctrl 0 0 16>;
+        #gpio-cells = <2>;
+        cmsdk_gpio,ngpio = <16>;
+        cmsdk_gpio,gpio-offset = <0>;
+    };
+
+    gpio1: gpio@78201000 {
+        compatible = "arm,cmsdk-gpio";
+        reg = <0 0x78201000 0 0x1000>,
+              <0 0x7c292000 0 0x1000>;
+        gpio-controller;
+        gpio-ranges = <&pinctrl 0 16 16>;
+        #gpio-cells = <2>;
+        cmsdk_gpio,ngpio = <16>;
+        cmsdk_gpio,gpio-offset = <16>;
     };
 
     macb: ethernet@1b5000 {

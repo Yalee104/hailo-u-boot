@@ -54,3 +54,13 @@
         drive-strength = <2>;
     };
 };
+
+&gpio0 {
+    // Disable all gpios
+    gpio-reserved-ranges = <0 16>;
+};
+
+&gpio1 {
+    // Disable all gpios
+    gpio-reserved-ranges = <0 16>;
+};

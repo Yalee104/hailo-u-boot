@@ -7,11 +7,3 @@
 
 #include "hailo15-base.dtsi"
 
-/delete-node/ &i2c_0;
-/delete-node/ &i2c_2;
-/delete-node/ &i2c_3;
-
-&i2c_1 {
-    status = "okay";
-};
-
