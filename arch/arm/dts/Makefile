@@ -1175,6 +1175,7 @@ dtb-$(CONFIG_TARGET_HAILO15_EVB_SECURITY_CAMERA) += hailo15-evb-security-camera-
 dtb-$(CONFIG_TARGET_HAILO15_SBC) += hailo15-sbc.dtb
 dtb-$(CONFIG_TARGET_HAILO15L_OREGANO) += hailo15l-oregano.dtb
 dtb-$(CONFIG_TARGET_HAILO10_M2) += hailo10-m2.dtb
+dtb-$(CONFIG_TARGET_GB_SBC) += gb-sbc.dtb
 
 targets += $(dtb-y)
 
