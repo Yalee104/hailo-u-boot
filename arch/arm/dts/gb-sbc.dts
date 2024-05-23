@@ -12,6 +12,8 @@
 //#include "hailo15_ddr_MT53E2G32D4DE-046_regconfig_8GB.dtsi"
 #include "hailo15_ddr_MT53E1G32D2FW-046_regconfig_ca_odtb_pu_4GB.dtsi"
 
+#include <dt-bindings/gpio/gpio.h>
+
 &sdio0 {
     status = "okay";
     sdhci-caps = <0 0x01000000>; // Force VOLT33 capability
@@ -71,4 +73,75 @@
 
 &hailo_boot_info {
     shutdown-gpio-pin = <200>; //intentionally out of range, to override the default 200
+};
+
+
+&gpio0 {
+    gpio-ranges = <&pinctrl 0 0 16>;
+
+    gpio-line-names =
+        "NC",
+        "NC",
+        "NC",
+        "NC",
+        "SEN_MCU_RX",
+        "MCU_ZB_RX",
+        "SEN_MCU_TX",
+        "MCU_ZB_TX",
+        "NC",
+        "SD_SEL",
+        "MCU_TCK",
+        "MCU_TDIO_RST_N",
+        "NC",
+        "ZIGBEE_RST_N",
+        "NC",
+        "NC";
+};
+
+&gpio1 {
+    gpio-ranges = <&pinctrl 0 16 16>;
+
+    gpio-line-names =
+        "IP_ID0",
+        "IP_ID1",
+        "AUD_RST_N",
+        "AUD_EN",
+        "SEN_RST_N",
+        "ETH_RST_N",
+        "NC",
+        "NR_ON_OFF",
+        "GYRO_INT_N",
+        "NC",
+        "NC",
+        "NC",
+        "NC",
+        "TCK_RTSn_SoC",
+        "TDIO_DTRn_SoC",
+        "NC";
+
+    eth_rst_n {
+
+        gpio-hog;
+
+        gpios = <5 GPIO_ACTIVE_HIGH>;
+
+        output-high;
+
+        line-name = "gpio_21";
+
+    };
+
+    //Temp solution to control the power of audio EN which is also used for ethernet power, this is is to prevent HW work around only.
+    aud_eth_power_n {
+
+        gpio-hog;
+
+        gpios = <3 GPIO_ACTIVE_HIGH>;
+
+        output-high;
+
+        line-name = "gpio_19";
+
+    };
+
 };
