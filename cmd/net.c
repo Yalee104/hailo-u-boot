@@ -196,8 +196,8 @@ static int netboot_common(enum proto_t proto, struct cmd_tbl *cmdtp, int argc,
 {
 	char *s;
 	char *end;
-	int   rcode = 0;
-	int   size;
+	int rcode = 0;
+	ssize_t size;
 	ulong addr;
 
 	net_boot_file_name_explicit = false;
@@ -338,7 +338,7 @@ static void cdp_update_env(void)
 
 int do_cdp(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[])
 {
-	int r;
+	ssize_t r;
 
 	r = net_loop(CDP);
 	if (r < 0) {

@@ -77,3 +77,23 @@ int scmi_hailo_get_boot_info(struct udevice *dev, struct scmi_hailo_get_boot_inf
 
 	return 0;
 }
+
+int scmi_hailo_send_boot_success_ind(struct udevice *dev) {
+	int ret;
+	struct scmi_hailo_boot_success_indication_a2p in = {
+			.component = SCMI_HAILO_BOOT_SUCCESS_COMPONENT_AP_BOOTLOADER,
+	};
+	DECLARE_SCMI_HAILO_OUT(scmi_hailo_empty_out, out);
+
+	struct scmi_msg msg = SCMI_MSG_IN(SCMI_PROTOCOL_ID_HAILO,
+					  SCMI_HAILO_BOOT_SUCCESS_INDICATION_ID, in, out);
+
+	ret = devm_scmi_process_msg(dev, &msg);
+	if (ret)
+		return ret;
+
+	if (out.status)
+		return scmi_to_linux_errno(out.status);
+
+	return 0;
+}

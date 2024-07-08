@@ -54,7 +54,8 @@ static uchar *saved_prot_info;
 #endif
 static int update_load(char *filename, ulong msec_max, int cnt_max, ulong addr)
 {
-	int size, rv;
+	ssize_t size;
+	int rv;
 	ulong saved_timeout_msecs;
 	int saved_timeout_count;
 	char *saved_netretry, *saved_bootfile;

@@ -436,7 +436,7 @@ static int is_usb_active(void)
  *     Network services
  ********************************************************************/
 #ifdef CONFIG_CMD_NET
-static size_t tftp_read_file(const char *file_name)
+static ssize_t tftp_read_file(const char *file_name)
 {
 	/*
 	 * update global variable image_load_addr before tftp file from network
@@ -451,7 +451,7 @@ static int is_tftp_active(void)
 }
 
 #else
-static size_t tftp_read_file(const char *file_name)
+static ssize_t tftp_read_file(const char *file_name)
 {
 	return 0;
 }

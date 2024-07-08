@@ -396,9 +396,9 @@ int net_init(void)
  *	Main network processing loop.
  */
 
-int net_loop(enum proto_t protocol)
+ssize_t net_loop(enum proto_t protocol)
 {
-	int ret = -EINVAL;
+	ssize_t ret = -EINVAL;
 	enum net_loop_state prev_net_state = net_state;
 
 #if defined(CONFIG_CMD_PING)
@@ -632,7 +632,7 @@ restart:
 		case NETLOOP_SUCCESS:
 			net_cleanup_loop();
 			if (net_boot_file_size > 0) {
-				printf("Bytes transferred = %d (%x hex)\n",
+				printf("Bytes transferred = %u (%x hex)\n",
 				       net_boot_file_size, net_boot_file_size);
 				env_set_hex("filesize", net_boot_file_size);
 				env_set_hex("fileaddr", image_load_addr);

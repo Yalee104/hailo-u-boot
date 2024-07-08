@@ -29,6 +29,7 @@
 #define SCMI_HAILO_SET_ETH_RMII_MODE_ID 6
 #define SCMI_HAILO_DDR_START_MEASURE_ID 7
 #define SCMI_HAILO_DDR_STOP_MEASURE_ID 8
+#define SCMI_HAILO_BOOT_SUCCESS_INDICATION_ID 9
 
 /*******************************
  * SCMI-Hailo notification IDs *
@@ -73,8 +74,19 @@ struct scmi_hailo_protocol_message_attributes_p2a {
  *************************************/
 
 struct scmi_hailo_get_boot_info_p2a {
-	uint8_t scu_bootstrap;
-	uint32_t qspi_flash_ab_offset;
+	struct {		// boot status bitmap - each bit set indicates boot success for corresponding component
+		uint8_t boot_success_scu_bl : 1;
+		uint8_t boot_success_scu_fw : 1;
+		uint8_t boot_success_ap_bootloader : 1;
+		uint8_t boot_success_ap_software : 1;
+		uint8_t reserved : 4;
+	} boot_status_bitmap;
+
+	uint8_t boot_count;              // Boot attempts of the current image offset & source
+	uint8_t active_image_desc_index; // Index of current image descriptor within image_descriptors table
+	uint8_t active_boot_image_storage; // Active image storage location - according to the active image descriptor index
+	uint32_t active_boot_image_offset;  // Memory offset of the actual booted image
+	uint8_t bootstrap_image_storage;   // Image Storage location - according to hardware bootstrap pads
 } __packed;
 
 /************************************************
@@ -140,22 +152,28 @@ struct scmi_hailo_ddr_start_measure_a2p_filter {
 struct scmi_hailo_ddr_start_measure_a2p {
 	uint32_t sample_time_us;
 	uint8_t after_trigger_percentage;
-	/*
-	There are 2 running modes:
-	- freerunning: the counters start when the measurement starts,
-		and keep increasing until the measurement it stopped.
-		This means that between samples, the counters only increse.
-		This also means that the counters may reach 0xFFFFFFFF and
-		won't be able to update again.
-	- gtimer: the counters will zero out in each sample.
-		This is done by using a hardware feature that stops the counting
-		after a certain amount of clock cycles that we configure.
-		This mode is more convenient but has the down side that
-		we don't have a way to automatically restart the counting,
-		so there is a period of time (let's say 3us) between every
-		2 samples where we don't measure.
-	*/
-	uint8_t is_freerunning;
+	struct {
+		/*
+		There are 2 running modes:
+		- freerunning: the counters start when the measurement starts,
+			and keep increasing until the measurement it stopped.
+			This means that between samples, the counters only increse.
+			This also means that the counters may reach 0xFFFFFFFF and
+			won't be able to update again.
+		- gtimer: the counters will zero out in each sample.
+			This is done by using a hardware feature that stops the counting
+			after a certain amount of clock cycles that we configure.
+			This mode is more convenient but has the down side that
+			we don't have a way to automatically restart the counting,
+			so there is a period of time (let's say 3us) between every
+			2 samples where we don't measure.
+		*/
+		uint8_t is_freerunning : 1;
+		uint8_t csm_enabled : 1;
+		uint8_t dsm_rx_enabled : 1;
+		uint8_t dsm_tx_enabled : 1;
+		uint8_t reserved : 4;
+	};
 	uint8_t num_counters;
 
 	struct scmi_hailo_ddr_start_measure_a2p_filter filters[4];
@@ -186,6 +204,24 @@ struct scmi_hailo_ddr_measurement_trigger_notification {
 struct scmi_hailo_ddr_measurement_ended_notification {
 	uint16_t sample_start_index;
 	uint16_t sample_end_index;
+} __packed;
+
+/****************************************************
+ * SCMI-Hailo boot success indication component IDs *
+ ****************************************************/
+
+enum scmi_hailo_boot_success_notification_id {
+	SCMI_HAILO_BOOT_SUCCESS_COMPONENT_AP_BOOTLOADER = 0,
+	SCMI_HAILO_BOOT_SUCCESS_COMPONENT_AP_SOFTWARE = 1,
+	SCMI_HAILO_BOOT_SUCCESS_COMPONENT_COUNT = 2
+};
+
+/***********************************************
+ * Boot success indication message definitions *
+ ***********************************************/
+struct scmi_hailo_boot_success_indication_a2p {
+	/* Boot success indication can be sent by U-Boot or Linux */
+	uint8_t component;       // 0 - AP bootloader (uboot), 1 - AP software (Linux)
 } __packed;
 
 #endif /* SCMI_HAILO_PROTOCOL_H */

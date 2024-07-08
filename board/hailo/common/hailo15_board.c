@@ -26,7 +26,7 @@
 DECLARE_GLOBAL_DATA_PTR;
 
 static struct udevice *scmi_agent_dev = NULL;
-ulong qspi_flash_ab_offset = 0;
+ulong active_boot_image_offset = 0;
 
 struct hailo15_dram_cfg {
 	/* DDR ECC state */
@@ -106,9 +106,9 @@ __weak void set_mac_addr(void)
 	
 }
 #endif
-ulong hailo15_get_qspi_flash_ab_offset(void)
+ulong hailo15_get_active_boot_image_offset(void)
 {
-	return qspi_flash_ab_offset;
+	return active_boot_image_offset;
 }
 
 int board_init(void)
@@ -163,7 +163,7 @@ int hailo15_scmi_init(void)
 		return ret;
 	}
 
-	qspi_flash_ab_offset = boot_info.qspi_flash_ab_offset;
+	active_boot_image_offset = boot_info.active_boot_image_offset;
 	return 0;
 }
 
@@ -176,7 +176,7 @@ int board_early_init_r(void)
 
 __weak int hailo15_mmc_boot_partition(void)
 {
-	if (qspi_flash_ab_offset != 0) {
+	if (active_boot_image_offset != 0) {
 		return CONFIG_HAILO15_MMC_BOOT_PARTITION_B;
 	}
 	return CONFIG_HAILO15_MMC_BOOT_PARTITION;
@@ -184,7 +184,7 @@ __weak int hailo15_mmc_boot_partition(void)
 
 __weak int hailo15_mmc_rootfs_partition(void)
 {
-	if (qspi_flash_ab_offset != 0) {
+	if (active_boot_image_offset != 0) {
 		return CONFIG_HAILO15_MMC_ROOTFS_PARTITION_B;
 	}
 	return CONFIG_HAILO15_MMC_ROOTFS_PARTITION;
@@ -192,9 +192,16 @@ __weak int hailo15_mmc_rootfs_partition(void)
 
 int misc_init_r(void)
 {
-	env_set_hex("qspi_flash_ab_offset", qspi_flash_ab_offset);
+	int ret = 0;
+	env_set_hex("active_boot_image_offset", active_boot_image_offset);
 	env_set_ulong("mmc_boot_partition", hailo15_mmc_boot_partition());
 	env_set_ulong("mmc_rootfs_partition", hailo15_mmc_rootfs_partition());
+
+	ret = scmi_hailo_send_boot_success_ind(scmi_agent_dev);
+	if (ret) {
+		printf("Error sending boot success indication via SCMI: ret=%d\n", ret);
+		return ret;
+	}
 
 #if defined(CONFIG_MAC_ADDR_IN_SPIFLASH)
 	set_mac_addr();
@@ -383,5 +390,5 @@ void *board_fdt_blob_setup(int *err)
 
 ulong env_sf_get_env_offset(void)
 {
-	return ((ulong)CONFIG_ENV_OFFSET) + qspi_flash_ab_offset;
+	return ((ulong)CONFIG_ENV_OFFSET) + active_boot_image_offset;
 }

@@ -24,8 +24,10 @@
     "default_spl_boot_source=mmc2\0" \
     "spl_boot_source=mmc2\0"
 
+#ifdef CONFIG_HAILO15_SWUPDATE
 #define SWUPDATE_BOOTMENU_OPTION "bootmenu_5=SWUpdate=run boot_swupdate_mmc\0" \
                                  "bootmenu_6=SWUpdate AB board init=run boot_swupdate_ab_tftp\0"
+#endif /* CONFIG_HAILO15_SWUPDATE */
 
 #include "hailo15_common.h"
 

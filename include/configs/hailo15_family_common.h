@@ -117,7 +117,8 @@
 #define UNNEEDED_MMCINFO_HACK "mmcinfo;"
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
-    "bootargs_base=setenv bootargs console=ttyS1,${baudrate}n8 earlycon loglevel=8 rootwait debug rw\0" \
+    "bootargs_base=setenv bootargs console=ttyS1,${baudrate}n8 earlycon loglevel=8 rootwait debug rw && run bootargs_board\0" \
+    "bootargs_board=setenv bootargs ${bootargs} ${bootargs_board_options}\0" \
     "bootargs_ram=setenv bootargs ${bootargs} root=/dev/ram0 ramdisk_size=${ramdisk_size}\0" \
     "bootargs_mmc=setenv bootargs ${bootargs} root=/dev/mmcblk${device_num}p${mmc_rootfs_partition}\0" \
     "bootargs_nfs=setenv bootargs ${bootargs} root=/dev/nfs rootfstype=nfs ip=${ipaddr} nfsroot=${serverip}:${nfsroot},v3,tcp\0" \

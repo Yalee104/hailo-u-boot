@@ -8,24 +8,20 @@
 #ifndef __HAILO10_M2_H
 #define __HAILO10_M2_H
 
-#define SWUPDATE_MMC_INDEX "1"
+#define BOOTMENU_COMMON "bootargs_board_options=\"swiotlb=noforce\"\0"
 
 #define BOOTMENU \
-    /* Try all boot options by order */ \
-    "bootmenu_0=Autodetect=" \
-        "if test \"${auto_uboot_update_enable}\" = \"yes\"; then run auto_uboot_update; exit 1; fi; " \
-        "echo Trying Boot from eMMC; run boot_mmc1;" \
-        "echo Trying Boot from NFS; run bootnfs;" \
-        "echo ERROR: All boot options failed\0" \
-    "bootmenu_1=Boot from eMMC=run boot_mmc1\0" \
-    "bootmenu_2=Update eMMC (wic) from TFTP=run update_wic_mmc1 && bootmenu -1\0" \
-    "bootmenu_3=Update eMMC (partitions) from TFTP=run update_partitions_mmc1 && bootmenu -1\0" \
-    "bootmenu_4=Boot from NFS=run bootnfs\0" \
-    "default_spl_boot_source=mmc2\0" \
-    "spl_boot_source=mmc2\0"
+    BOOTMENU_COMMON \
+    "default_spl_boot_source=ram\0" \
+    "spl_boot_source=ram\0" \
+    "bootmenu_0=Boot from RAM=run bootargs_base bootargs_ram && bootm 0x87000000 0x88000000:0x10000000\0"
 
-#define SWUPDATE_BOOTMENU_OPTION "bootmenu_5=SWUpdate=run boot_swupdate_mmc\0" \
-                                 "bootmenu_6=SWUpdate AB board init=run boot_swupdate_ab_tftp\0"
+#ifdef CONFIG_SPL_BUILD
+
+    #define CONFIG_EXTRA_ENV_SETTINGS \
+        BOOTMENU
+
+#endif /* CONFIG_SPL_BUILD */
 
 #include "hailo15_common.h"
 

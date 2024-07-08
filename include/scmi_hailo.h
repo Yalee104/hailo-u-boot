@@ -27,6 +27,8 @@ int scmi_hailo_set_eth_rmii(struct udevice *dev);
 
 int scmi_hailo_get_boot_info(struct udevice *dev, struct scmi_hailo_get_boot_info_p2a *boot_info);
 
+int scmi_hailo_send_boot_success_ind(struct udevice *dev);
+
 #else
 int scmi_hailo_configure_ethernet_delay(
     struct udevice *dev, uint8_t tx_bypass_clock_delay, uint8_t tx_clock_inversion,
@@ -42,6 +44,11 @@ int scmi_hailo_set_eth_rmii(struct udevice *dev);
 }
 
 int scmi_hailo_get_boot_info(struct udevice *dev, struct scmi_hailo_get_boot_info_p2a *boot_info)
+{
+    return SCMI_NOT_SUPPORTED;
+}
+
+int scmi_hailo_send_boot_success_ind(struct udevice *dev)
 {
     return SCMI_NOT_SUPPORTED;
 }

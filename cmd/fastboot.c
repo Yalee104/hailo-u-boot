@@ -20,7 +20,7 @@ static int do_fastboot_udp(int argc, char *const argv[],
 			   uintptr_t buf_addr, size_t buf_size)
 {
 #if CONFIG_IS_ENABLED(UDP_FUNCTION_FASTBOOT)
-	int err = net_loop(FASTBOOT);
+	ssize_t err = net_loop(FASTBOOT);
 
 	if (err < 0) {
 		printf("fastboot udp error: %d\n", err);

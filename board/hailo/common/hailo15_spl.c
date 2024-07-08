@@ -47,6 +47,9 @@ void board_boot_order(u32 *spl_boot_list)
 	} else if (!strcmp(s, "mmc21")) {
 		spl_boot_list[0] = BOOT_DEVICE_MMC2;
 		spl_boot_list[1] = BOOT_DEVICE_MMC1;
+	} else if (!strcmp(s, "ram_mmc2")) {
+		spl_boot_list[0] = BOOT_DEVICE_RAM;
+		spl_boot_list[1] = BOOT_DEVICE_MMC2;
 	} else if (!strcmp(s, "uart")) {
 		spl_boot_list[0] = BOOT_DEVICE_UART;
 	} else if (!strcmp(s, "ram")) {
@@ -70,5 +73,5 @@ int spl_mmc_fs_boot_partition(void)
 
 unsigned long spl_nor_get_uboot_base(void)
 {
-	return BASE_SPI_FLASH_ADDRESS + CONFIG_SYS_UBOOT_OFFSET + hailo15_get_qspi_flash_ab_offset();
+	return BASE_SPI_FLASH_ADDRESS + CONFIG_SYS_UBOOT_OFFSET + hailo15_get_active_boot_image_offset();
 }

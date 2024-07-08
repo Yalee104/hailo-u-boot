@@ -8,14 +8,20 @@
 #ifndef __HAILO15L_OREGANO_H
 #define __HAILO15L_OREGANO_H
 
-#define SPL_BOOT_SOURCE "ram"
+#define SPL_BOOT_SOURCE "nor"
 // #define SPL_BOOT_SOURCE "mmc1"
 
 #define BOOTMENU \
     "default_spl_boot_source=" SPL_BOOT_SOURCE "\0" \
     "spl_boot_source=" SPL_BOOT_SOURCE "\0" \
-    "bootmenu_0=Boot from SD=run boot_mmc0\0" \
-    "bootmenu_1=Boot from RAM=run bootargs_base bootargs_ram && bootm 0x87000000 0x88000000:0x1000000\0" \
+    "bootmenu_0=Autodetect=" \
+        "if test \"${auto_uboot_update_enable}\" = \"yes\"; then run auto_uboot_update; exit 1; fi; " \
+        "echo Trying Boot from NFS; run bootnfs;" \
+        "echo Trying Boot from SD; run boot_mmc0;" \
+        "echo ERROR: All boot options failed\0" \
+    "bootmenu_1=Boot from SD=run boot_mmc0\0" \
+    "bootmenu_2=Boot from RAM=run bootargs_base bootargs_ram && bootm 0x87000000 0x88000000:0x1000000\0" \
+    "bootmenu_3=Boot from NFS=run bootnfs\0" \
     "bootdelay=4\0"
 
 #ifdef CONFIG_SPL_BUILD

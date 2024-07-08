@@ -29,6 +29,7 @@ static int spl_net_load_image(struct spl_image_info *spl_image,
 			      struct spl_boot_device *bootdev)
 {
 	struct image_header *header = (struct image_header *)image_load_addr;
+	ssize_t size;
 	int rv;
 
 	env_init();
@@ -41,10 +42,10 @@ static int spl_net_load_image(struct spl_image_info *spl_image,
 	}
 	if (bootdev->boot_device_name)
 		env_set("ethact", bootdev->boot_device_name);
-	rv = net_loop(BOOTP);
-	if (rv < 0) {
+	size = net_loop(BOOTP);
+	if (size < 0) {
 		printf("Problem booting with BOOTP\n");
-		return rv;
+		return size;
 	}
 
 	if (IS_ENABLED(CONFIG_SPL_LOAD_FIT) &&

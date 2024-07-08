@@ -82,6 +82,7 @@ config MACH_HAILO15_FAMILY
 	select TFABOOT
 	select WATCHDOG
 	select SPL_WDT
+	select SPL_WATCHDOG
 	select WDT
 	select WDT_SP805
 	select SPL_BOARD_INIT
@@ -140,11 +141,6 @@ config MACH_HAILO15L
 config MACH_HAILO10
 	bool
 	select MACH_HAILO15_FAMILY
-	select ENV_IS_IN_SPI_FLASH
-	select SPL_ENV_IS_IN_SPI_FLASH
-	select CADENCE_QSPI
-	# The above selection for ENV and SPL_ENV in flash and CADENCE_QSPI are temporary.
-	# TODO: need to be changed similar to HAILO15L.
 
 if MACH_HAILO15_FAMILY
 
@@ -224,6 +220,9 @@ config HAILO15_SWUPDATE
 	bool "Hailo15 SWUpdate support"
 	select SUPPORT_RAW_INITRD
 
+config HAILO15_ENABLE_CORESIGHT_AT_BOOT
+	bool "Hailo15 enable coresight at boot"
+
 config SPL_OF_LIBFDT_ASSUME_MASK
 	default 0
 
@@ -254,7 +253,7 @@ config BAUDRATE
 
 endif
 
-if MACH_HAILO15L
+if MACH_HAILO15L || MACH_HAILO10
 
 config SPL_LOAD_FIT_ADDRESS
 	default 0x86000000
@@ -311,6 +310,10 @@ config TARGET_HAILO10_M2
 	bool "Hailo10 M.2"
 	select MACH_HAILO10
 
+config TARGET_HAILO10_M2_DEVEL
+	bool "Hailo10 M.2 development"
+	select MACH_HAILO10
+
 source "board/hailo/hailo15-vp/Kconfig"
 source "board/hailo/hailo15-ginger-soc/Kconfig"
 source "board/hailo/hailo15-ginger-soc-sdio0/Kconfig"
@@ -322,5 +325,6 @@ source "board/hailo/hailo15-evb-security-camera/Kconfig"
 source "board/hailo/hailo15-sbc/Kconfig"
 source "board/hailo/hailo15l-oregano/Kconfig"
 source "board/hailo/hailo10-m2/Kconfig"
+source "board/hailo/hailo10-m2-devel/Kconfig"
 
 endif

@@ -26,7 +26,7 @@ int udp_start(void)
 
 int udp_loop(struct udp_ops *ops)
 {
-	int ret = -1;
+	ssize_t ret = -1;
 
 	if (!ops) {
 		printf("%s: ops should not be null\n", __func__);
