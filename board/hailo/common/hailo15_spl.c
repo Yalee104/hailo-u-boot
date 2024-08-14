@@ -8,11 +8,17 @@
 #include <env.h>
 #include <hang.h>
 #include "hailo15_board.h"
+#ifdef CONFIG_SPL_ENV_IS_IN_MMC
+#include "mmc.h"
+#endif
 
 #define BASE_SPI_FLASH_ADDRESS 0x70000000
 
 void spl_board_init(void)
 {
+#ifdef CONFIG_SPL_ENV_IS_IN_MMC
+	mmc_initialize(NULL);
+#endif
 	if (hailo15_scmi_init()) {
 		hang();
 	}
