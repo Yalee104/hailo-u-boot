@@ -77,6 +77,7 @@
 #define BOOTMENU \
     /* Try all boot options by order */ \
     "bootmenu_0=Autodetect=" \
+        "if test ${boot_image_mode} = 1; then run boot_swupdate_mmc; exit 1; fi; " \
         "if test \"${auto_uboot_update_enable}\" = \"yes\"; then run auto_uboot_update; exit 1; fi; " \
         "echo Trying Boot from SD; run boot_mmc0;" \
         "echo Trying Boot from eMMC; run boot_mmc1;" \
@@ -95,6 +96,7 @@
 #define BOOTMENU \
     /* Try all boot options by order */ \
     "bootmenu_0=Autodetect=" \
+        "if test ${boot_image_mode} = 1; then run boot_swupdate_mmc; exit 1; fi; " \
         "if test \"${auto_uboot_update_enable}\" = \"yes\"; then run auto_uboot_update; exit 1; fi; " \
         "echo Trying Boot from eMMC; run boot_mmc1;" \
         "echo Trying Boot from NFS; run bootnfs;" \
@@ -128,6 +130,7 @@
     "sd_block_size=200\0" /* in hex, taken from running mmcinfo */\
     "serverip=10.0.0.2\0" \
     "ipaddr=10.0.0.1\0" \
+    "core_image_name=" CONFIG_CORE_IMAGE_NAME "\0" \
     "set_mmc0_device_num= setenv device_num 0 && mmc dev ${device_num}\0" \
     "set_mmc1_device_num= setenv device_num 1 && mmc dev ${device_num}\0" \
     "load_fitimage_from_mmc=" UNNEEDED_MMCINFO_HACK " fatload mmc ${device_num}:${mmc_boot_partition} ${far_ram_addr} fitImage\0" \
@@ -139,8 +142,8 @@
     "write_wic_to_mmc=setexpr wic_sdblock_count ${filesize} / ${sd_block_size} && setexpr wic_sdblock_count ${wic_sdblock_count} + 1; " UNNEEDED_MMCINFO_HACK " mmc write ${far_ram_addr} 0 ${wic_sdblock_count}\0" \
     "write_rootfs_to_mmc=setexpr rootfs_sdblock_count ${filesize} / ${sd_block_size} && setexpr rootfs_sdblock_count ${rootfs_sdblock_count} + 1; " UNNEEDED_MMCINFO_HACK " run get_rootfs_partition_start_offset && mmc write ${far_ram_addr} ${rootfs_partition_start_offset} ${rootfs_sdblock_count}\0" \
     /* tftpboot sets filesize to the size it loaded */\
-    "download_wic_to_ram=tftpboot ${far_ram_addr} core-image-minimal-" CONFIG_SYS_BOARD ".wic\0" \
-    "download_rootfs_to_ram=tftpboot ${far_ram_addr} core-image-minimal-" CONFIG_SYS_BOARD ".ext4\0" \
+    "download_wic_to_ram=tftpboot ${far_ram_addr} ${core_image_name}-" CONFIG_SYS_BOARD ".wic\0" \
+    "download_rootfs_to_ram=tftpboot ${far_ram_addr} ${core_image_name}-" CONFIG_SYS_BOARD ".ext4\0" \
     "download_fitimage_to_ram=tftpboot ${far_ram_addr} fitImage\0" \
     "download_uboot_to_ram=tftpboot ${far_ram_addr} " CONFIG_SPL_FS_LOAD_PAYLOAD_NAME "\0" \
     "boot_mmc=run bootargs_base bootargs_mmc && run load_fitimage_from_mmc && bootm ${far_ram_addr}\0" \

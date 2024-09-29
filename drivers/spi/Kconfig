@@ -504,4 +504,12 @@ config SYNQUACER_SPI
 	  be used to access the SPI interface and SPI NOR flash on platforms
 	  embedding this HS-SPI IP core.
 
+config HAILO_XSPI
+	bool "Hailo XSPI driver"
+	help
+	  Enable the hailo XSPI driver. This driver can be
+	  used to access the SPI NOR flash on platforms embedding this
+	  IP core.
+	  This driver is using Cadence xspi controller.
+
 endif # menu "SPI Support"

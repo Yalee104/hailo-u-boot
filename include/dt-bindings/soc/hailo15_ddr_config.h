@@ -10,4 +10,12 @@
 #define DDR_CTRL_ECC_MODE_DETECTION (2) /* ECC enabled, detection enabled, correction disabled */
 #define DDR_CTRL_ECC_MODE_CORRECTION (3)
 
+#define DRAM_AUTO_LOW_POWER_MODE_DISABLED (0) /* DRAM Auto Low power mode disabled */
+#define DRAM_AUTO_LOW_POWER_MODE_DYNAMIC_PCPCS_INTERFACE (1) /* (default) Dynamic Power Control Per Chip Select */
+#define DRAM_AUTO_LOW_POWER_MODE_AUTOMATIC_INTERFACE (2) /* Automatic entry and exit for all low power states */
+
+#define DDR_PHY_LOW_POWER_MODE_DISBALED (0)
+#define DDR_PHY_LOW_POWER_MODE_LIGHT_SLEEP (1) /* (default) */
+#define DDR_PHY_LOW_POWER_MODE_DEEP_SLEEP (2)
+
 #endif /* __HAILO15_DDR_CONFIG_H */

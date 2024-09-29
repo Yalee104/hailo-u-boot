@@ -115,7 +115,6 @@ config MACH_HAILO15_FAMILY
 	imply AUTOBOOT
 	imply SPL_DM_MMC
 	imply SPL_MMC
-	imply SPL_FS_FAT
 	imply SPL_YMODEM_SUPPORT
 	imply CMSDK_GPIO
 	imply CMD_GPIO
@@ -125,24 +124,34 @@ config MACH_HAILO15_FAMILY
 config MACH_HAILO15
 	bool
 	select MACH_HAILO15_FAMILY
-	select ENV_IS_IN_SPI_FLASH
-	select SPL_ENV_IS_IN_SPI_FLASH
+	imply ENV_IS_IN_SPI_FLASH
+	imply SPL_ENV_IS_IN_SPI_FLASH
 	select CADENCE_QSPI
+	imply SPL_FS_FAT
 
 config MACH_HAILO15L
 	bool
 	select MACH_HAILO15_FAMILY
-	select SPL_ENV_IS_NOWHERE
-	select ENV_IS_NOWHERE
+	imply ENV_IS_IN_MMC
+	imply SPL_ENV_IS_IN_MMC
+	imply SPL_MMC
+	select HAILO_XSPI
 	select SPL_RAM_SUPPORT
 	select SPL_RAM_DEVICE
 	select SUPPORT_RAW_INITRD
+	imply SUPPORT_EMMC_BOOT
+	imply SYS_MMCSD_RAW_MODE_EMMC_BOOT_PARTITION
+	imply SYS_MMCSD_RAW_MODE_U_BOOT_USE_SECTOR
 
 config MACH_HAILO10
 	bool
 	select MACH_HAILO15_FAMILY
 
 if MACH_HAILO15_FAMILY
+
+config CORE_IMAGE_NAME
+	string "Image Name"
+	default "core-image-minimal"
 
 config PRE_CON_BUF_ADDR
 	default 0x84000000
@@ -176,6 +185,12 @@ config MAC_ADDR_OFFSET
 config ENV_SIZE
 	default 0x4000
 
+config SYS_MMC_ENV_DEV
+	default 1
+
+config SYS_MMC_ENV_PART
+	default 1
+
 config SPL_TEXT_BASE
 	default 0x801D4000
 
@@ -192,6 +207,9 @@ config HAILO15_DTB_ADDRESS
 config HAILO15_DTB_MAX_SIZE
 	hex "Hailo15 DTB maximum size"
 	default 0xD4000
+
+config SYS_MMCSD_RAW_MODE_U_BOOT_SECTOR
+	default 0x400
 
 config SPL_SIZE_LIMIT_PROVIDE_STACK
 	default 0
@@ -306,6 +324,14 @@ config TARGET_HAILO15L_OREGANO
 	bool "Hailo15L Oregano"
 	select MACH_HAILO15L
 
+config TARGET_HAILO15L_EVB
+	bool "Hailo15L EVB"
+	select MACH_HAILO15L
+
+config TARGET_HAILO15L_SBC
+	bool "Hailo15L SBC"
+	select MACH_HAILO15L
+
 config TARGET_HAILO10_M2
 	bool "Hailo10 M.2"
 	select MACH_HAILO10
@@ -324,6 +350,8 @@ source "board/hailo/hailo15-evb-2-camera-vpu/Kconfig"
 source "board/hailo/hailo15-evb-security-camera/Kconfig"
 source "board/hailo/hailo15-sbc/Kconfig"
 source "board/hailo/hailo15l-oregano/Kconfig"
+source "board/hailo/hailo15l-evb/Kconfig"
+source "board/hailo/hailo15l-sbc/Kconfig"
 source "board/hailo/hailo10-m2/Kconfig"
 source "board/hailo/hailo10-m2-devel/Kconfig"
 

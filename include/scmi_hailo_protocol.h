@@ -27,17 +27,18 @@
 #define SCMI_HAILO_CONFIGURE_ETH_DELAY_ID 4
 #define SCMI_HAILO_GET_FUSE_INFO_ID 5
 #define SCMI_HAILO_SET_ETH_RMII_MODE_ID 6
-#define SCMI_HAILO_DDR_START_MEASURE_ID 7
-#define SCMI_HAILO_DDR_STOP_MEASURE_ID 8
+#define SCMI_HAILO_NOC_START_MEASURE_ID 7
+#define SCMI_HAILO_NOC_STOP_MEASURE_ID 8
 #define SCMI_HAILO_BOOT_SUCCESS_INDICATION_ID 9
+#define SCMI_HAILO_SWUPDATE_INDICATION_ID 10
 
 /*******************************
  * SCMI-Hailo notification IDs *
  *******************************/
 
 enum scmi_hailo_notification_id {
-	SCMI_HAILO_DDR_MEASUREMENT_TRIGGER_NOTIFICATION_ID = 0,
-	SCMI_HAILO_DDR_MEASUREMENT_ENDED_NOTIFICATION_ID = 1,
+	SCMI_HAILO_NOC_MEASUREMENT_TRIGGER_NOTIFICATION_ID = 0,
+	SCMI_HAILO_NOC_MEASUREMENT_ENDED_NOTIFICATION_ID = 1,
 	SCMI_HAILO_NOTIFICATION_COUNT = 2
 };
 
@@ -73,6 +74,16 @@ struct scmi_hailo_protocol_message_attributes_p2a {
  * Get Boot Info message definitions *
  *************************************/
 
+/****************************************************
+ * SCMI-Hailo get boot info image mode enum *
+ ****************************************************/
+
+typedef enum  {
+	SCMI_HAILO_BOOT_INFO_IMAGE_MODE_NORMAL = 0,
+	SCMI_HAILO_BOOT_INFO_IMAGE_MODE_REMOTE_UPDATE = 1,
+	SCMI_HAILO_BOOT_INFO_IMAGE_MODE_MAX = 7
+} scmi_hailo_boot_info_image_mode_t;
+
 struct scmi_hailo_get_boot_info_p2a {
 	struct {		// boot status bitmap - each bit set indicates boot success for corresponding component
 		uint8_t boot_success_scu_bl : 1;
@@ -87,6 +98,7 @@ struct scmi_hailo_get_boot_info_p2a {
 	uint8_t active_boot_image_storage; // Active image storage location - according to the active image descriptor index
 	uint32_t active_boot_image_offset;  // Memory offset of the actual booted image
 	uint8_t bootstrap_image_storage;   // Image Storage location - according to hardware bootstrap pads
+	uint8_t boot_image_mode;         // Boot image mode - normal or remote update
 } __packed;
 
 /************************************************
@@ -123,10 +135,10 @@ struct scmi_hailo_get_fuse_info_p2a {
 /* none */
 
 /*****************************************
- * DDR Start measure message definitions *
+ * NoC Start measure message definitions *
  *****************************************/
 
-struct scmi_hailo_ddr_start_measure_a2p_filter {
+struct scmi_hailo_noc_start_measure_a2p_filter {
 	/* entry[0] */
 	struct {
 		unsigned int window_size : 6;
@@ -149,7 +161,7 @@ struct scmi_hailo_ddr_start_measure_a2p_filter {
 	uint32_t addrbase_low;
 };
 
-struct scmi_hailo_ddr_start_measure_a2p {
+struct scmi_hailo_noc_start_measure_a2p {
 	uint32_t sample_time_us;
 	uint8_t after_trigger_percentage;
 	struct {
@@ -176,32 +188,32 @@ struct scmi_hailo_ddr_start_measure_a2p {
 	};
 	uint8_t num_counters;
 
-	struct scmi_hailo_ddr_start_measure_a2p_filter filters[4];
+	struct scmi_hailo_noc_start_measure_a2p_filter filters[4];
 } __packed;
 
 /****************************************
- * DDR Stop measure message definitions *
+ * NoC Stop measure message definitions *
  ***************************************/
 
-struct scmi_hailo_ddr_stop_measure_p2a {
+struct scmi_hailo_noc_stop_measure_p2a {
 	bool was_running;
 } __packed;
 
 /* none */
 
 /****************************************************
- * DDR measurement trigger notification definitions *
+ * NoC measurement trigger notification definitions *
  ****************************************************/
 
-struct scmi_hailo_ddr_measurement_trigger_notification {
+struct scmi_hailo_noc_measurement_trigger_notification {
 	uint16_t sample_index;
 } __packed;
 
 /**************************************************
- * DDR measurement ended notification definitions *
+ * NoC measurement ended notification definitions *
  **************************************************/
 
-struct scmi_hailo_ddr_measurement_ended_notification {
+struct scmi_hailo_noc_measurement_ended_notification {
 	uint16_t sample_start_index;
 	uint16_t sample_end_index;
 } __packed;
@@ -211,9 +223,10 @@ struct scmi_hailo_ddr_measurement_ended_notification {
  ****************************************************/
 
 enum scmi_hailo_boot_success_notification_id {
-	SCMI_HAILO_BOOT_SUCCESS_COMPONENT_AP_BOOTLOADER = 0,
-	SCMI_HAILO_BOOT_SUCCESS_COMPONENT_AP_SOFTWARE = 1,
-	SCMI_HAILO_BOOT_SUCCESS_COMPONENT_COUNT = 2
+	SCMI_HAILO_BOOT_SUCCESS_COMPONENT_SCU_FW = 0,
+	SCMI_HAILO_BOOT_SUCCESS_COMPONENT_AP_BOOTLOADER = 1,
+	SCMI_HAILO_BOOT_SUCCESS_COMPONENT_AP_SOFTWARE = 2,
+	SCMI_HAILO_BOOT_SUCCESS_COMPONENT_COUNT = 3
 };
 
 /***********************************************
@@ -221,7 +234,7 @@ enum scmi_hailo_boot_success_notification_id {
  ***********************************************/
 struct scmi_hailo_boot_success_indication_a2p {
 	/* Boot success indication can be sent by U-Boot or Linux */
-	uint8_t component;       // 0 - AP bootloader (uboot), 1 - AP software (Linux)
+	uint8_t component;       // 0 - SCU FW, 1 - AP bootloader (uboot), 2 - AP software (Linux)
 } __packed;
 
 #endif /* SCMI_HAILO_PROTOCOL_H */

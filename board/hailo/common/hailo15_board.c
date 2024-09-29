@@ -28,6 +28,8 @@ DECLARE_GLOBAL_DATA_PTR;
 static struct udevice *scmi_agent_dev = NULL;
 ulong active_boot_image_offset = 0;
 
+// Global variable to indicate if the boot image is in remote update mode, and need to set the corresponding env variable
+uint8_t boot_image_mode = 0;
 struct hailo15_dram_cfg {
 	/* DDR ECC state */
 	bool ecc_enable;
@@ -164,6 +166,10 @@ int hailo15_scmi_init(void)
 	}
 
 	active_boot_image_offset = boot_info.active_boot_image_offset;
+
+	// boot_image_mode is passed directly to bootmenu to test against
+	boot_image_mode = boot_info.boot_image_mode;
+	
 	return 0;
 }
 
@@ -194,9 +200,10 @@ int misc_init_r(void)
 {
 	int ret = 0;
 	env_set_hex("active_boot_image_offset", active_boot_image_offset);
+	env_set_ulong("boot_image_mode", boot_image_mode);
 	env_set_ulong("mmc_boot_partition", hailo15_mmc_boot_partition());
 	env_set_ulong("mmc_rootfs_partition", hailo15_mmc_rootfs_partition());
-
+	
 	ret = scmi_hailo_send_boot_success_ind(scmi_agent_dev);
 	if (ret) {
 		printf("Error sending boot success indication via SCMI: ret=%d\n", ret);

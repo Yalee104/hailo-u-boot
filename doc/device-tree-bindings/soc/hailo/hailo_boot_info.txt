@@ -41,6 +41,16 @@ The `ddr_config` structure includes the following properties:
 - temperature_retraining_threshold_millicelsius: Retraining temperature change threshold in milli-Celsius.
 - stop_before_controller_start: Is in stop-before-controller-start mode? (1) yes, (0) no).
     - This mode is used for comparison with the configuration before controller-start in DDRAPP mode.
+- dram_auto_low_power_mode: selects Automatic DRAM low power mode.
+    - Possible values:
+        - DRAM_AUTO_LOW_POWER_MODE_DISABLED: Automatic DRAM low power is disabled.
+        - DRAM_AUTO_LOW_POWER_MODE_DYNAMIC_PCPCS_INTERFACE Dynamic Power Control Per Chip Select.
+        - DRAM_AUTO_LOW_POWER_MODE_AUTOMATIC_INTERFACE: Automatic entry and exit for all low power states
+- ddr_phy_low_power_mode: selects DDR PHY low power mode
+    - Possible values:
+        - DDR_PHY_LOW_POWER_MODE_DISBALED: DDR PHY low power mod is disabled
+        - DDR_PHY_LOW_POWER_MODE_LIGHT_SLEEP
+        - DDR_PHY_LOW_POWER_MODE_DEEP_SLEEP
 
 Example:
 -------
@@ -64,6 +74,8 @@ hailo_boot_info {
                 temperature_poll_period_ms = <1000>;
                 temperature_retraining_threshold_millicelsius = <100>;
                 stop_before_controller_start = <0>;
+                dram_auto_low_power_mode = <DRAM_AUTO_LOW_POWER_MODE_DYNAMIC_PCPCS_INTERFACE>;
+                ddr_phy_low_power_mode = <DDR_PHY_LOW_POWER_MODE_LIGHT_SLEEP>;
         };
 };
 ```
